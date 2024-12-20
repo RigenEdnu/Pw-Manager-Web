@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-4 text-gray-800">Add New Password</h1>
+    
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <form method="POST">
+                <div class="form-group">
+                    <label for="label">Generated Password</label>
+                    <input type="text" class="form-control" id="generatedPassword" name="label" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="customRange1" id="rangeLabel">Panjang: 5</label>
+                    <input type="range" class="form-range w-100" min="5" max="128" value="5" id="customRange1">
+                </div>
+                <div class="form-group">
+                    <div class="form-check">
+                        <input class="form-check-input password-option" type="checkbox" value="ABCDEFGHIJKLMNOPQRSTUVWXYZ" id="uppercase">
+                        <label class="form-check-label" for="uppercase">
+                            A-Z
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="form-check">
+                        <input class="form-check-input password-option" type="checkbox" value="abcdefghijklmnopqrstuvwxyz" id="lowercase">
+                        <label class="form-check-label" for="lowercase">
+                            a-z
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="form-check">
+                        <input class="form-check-input password-option" type="checkbox" value="0123456789" id="numbers">
+                        <label class="form-check-label" for="numbers">
+                            0-9
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="form-check">
+                        <input class="form-check-input password-option" type="checkbox" value="!@#$%^&*()_+-=[]{}|;:,.<>?" id="symbols">
+                        <label class="form-check-label" for="symbols">
+                            !@#$%^&*
+                        </label>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" hidden>Submit</button>
+                <a href="/management/password" class="btn btn-secondary" hidden>Cancel</a>
+                <button type="button" class="btn btn-success" data-toggle="modal" data-target="#saveModal">Save to list</button>
+
+                <!-- Save Modal -->
+                <div class="modal fade" id="saveModal" tabindex="-1" role="dialog" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Save Password</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <form action="/generate/password/save" method="POST">
+                                <div class="modal-body">
+                                    <div class="form-group">
+                                        <label>Label</label>
+                                        <input type="text" class="form-control" name="label" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Username</label>
+                                        <input type="text" class="form-control" name="username" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Generated Password</label>
+                                        <input type="text" class="form-control" name="password" id="modalPassword" readonly>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-success">Save</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    const range = document.getElementById('customRange1');
+    const rangeLabel = document.getElementById('rangeLabel');
+    const generatedPassword = document.getElementById('generatedPassword');
+    const checkboxes = document.querySelectorAll('.password-option');
+    const modalPassword = document.getElementById('modalPassword');
+    
+    function generatePassword(length, chars) {
+        if (!chars.length) return '';
+        let password = '';
+        for (let i = 0; i < length; i++) {
+            const randomIndex = Math.floor(Math.random() * chars.length);
+            password += chars[randomIndex];
+        }
+        return password;
+    }
+    
+    function updatePassword() {
+        const length = parseInt(range.value);
+        let chars = '';
+        
+        checkboxes.forEach(checkbox => {
+            if (checkbox.checked) {
+                chars += checkbox.value;
+            }
+        });
+        
+        if (chars) {
+            const newPassword = generatePassword(length, chars);
+            generatedPassword.value = newPassword;
+            // Update modal password if modal exists
+            if (modalPassword) {
+                modalPassword.value = newPassword;
+            }
+        } else {
+            generatedPassword.value = '';
+            if (modalPassword) {
+                modalPassword.value = '';
+            }
+        }
+    }
+    
+    // Event listeners
+    range.addEventListener('input', function() {
+        rangeLabel.textContent = `Panjang: ${this.value}`;
+        updatePassword();
+    });
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updatePassword);
+    });
+
+    // Remove the previous modal show event listener and use this instead
+    $('#saveModal').on('show.bs.modal', function() {
+        modalPassword.value = generatedPassword.value;
+    });
+</script>
+{% endblock %}
