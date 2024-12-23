@@ -1,6 +1,5 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import *
 import json
-import os
 
 app = Flask(__name__, static_folder='public', template_folder='templates')
 app.secret_key = 'your-secret-key'
@@ -15,6 +14,14 @@ def load_passwd():
 def save_passwd(data):
     with open(JSON_FILE, 'w') as f:
         json.dump({'passwords': data}, f, indent=4)
+
+@app.route('/login')
+def login():
+    return render_template('auth/login.html')
+
+@app.route('/signup')
+def signup():
+    return render_template('auth/signup.html')
 
 @app.route('/')
 def index():
@@ -31,7 +38,7 @@ def add():
     if request.method == 'POST':
         data = load_passwd()
         new_entry = {
-            "id_pass": len(data) + 1,
+            "id_pass": len(data) + 1,  # This will always be correct now
             "label": request.form['label'],
             "username": request.form['username'],
             "password": request.form['pass']
@@ -60,7 +67,13 @@ def edit(id):
 @app.route('/management/password/<int:id>/delete')
 def delete(id):
     data = load_passwd()
+    # Remove the item with the specified id
     data = [item for item in data if item['id_pass'] != id]
+    
+    # Reorder the IDs sequentially
+    for index, item in enumerate(data, start=1):
+        item['id_pass'] = index
+        
     save_passwd(data)
     flash('Data deleted successfully!', 'success')
     return redirect(url_for('management_password'))
@@ -73,7 +86,7 @@ def generate_password():
 def save_generated():
     data = load_passwd()
     new_entry = {
-        "id_pass": len(data) + 1,
+        "id_pass": len(data) + 1,  # This will always be correct now
         "label": request.form['label'],
         "username": request.form['username'],
         "password": request.form['password']
