@@ -1,4 +1,4 @@
-from flask import *
+from flask import Flask, render_template, request, redirect, url_for, flash
 import json
 
 app = Flask(__name__, static_folder='public', template_folder='templates')
