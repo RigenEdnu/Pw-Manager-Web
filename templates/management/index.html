@@ -40,7 +40,7 @@
                         <tr>
                             <td>{{ item.id_pass }}</td>
                             <td>{{ item.label }}</td>
-                            <td>{{ item.username }}</td>
+                            <td>{{ item.username }}</td>  <!-- Show plain username -->
                             <td class="text-right">
                                 <a href="{{ url_for('edit', id=item.id_pass) }}" class="btn btn-warning btn-sm">
                                     <i class="fas fa-edit"></i>
@@ -74,7 +74,7 @@
                                                 <div class="form-group">
                                                     <label class="w-100 text-left">Password</label>
                                                     <div class="input-group">
-                                                        <input type="password" class="form-control password-field" value="{{ item.password }}" readonly>
+                                                        <input type="password" class="form-control password-field" value="{{ item.display_password }}" readonly>
                                                         <div class="input-group-append">
                                                             <button class="btn btn-outline-secondary toggle-password" type="button">
                                                                 <i class="fas fa-eye"></i>

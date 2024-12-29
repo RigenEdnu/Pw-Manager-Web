@@ -89,17 +89,30 @@
 
                     <div class="card bg-glass">
                         <div class="card-body px-4 py-5 px-md-5">
-                            <form>
+                            <form method="POST" action="{{ url_for('signup') }}">
+                                <!-- Flash Messages -->
+                                {% with messages = get_flashed_messages(with_categories=true) %}
+                                    {% if messages %}
+                                        {% for category, message in messages %}
+                                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                                {{ message }}
+                                                <button type="button" class="btn-close" data-mdb-dismiss="alert" aria-label="Close"></button>
+                                            </div>
+                                        {% endfor %}
+                                    {% endif %}
+                                {% endwith %}
+
                                 <!-- Username input -->
                                 <div data-mdb-input-init class="form-outline mb-4">
-                                    <input type="Username" id="Username" class="form-control" placeholder=" " />
-                                    <label class="form-label" for="Username">Username</label>
+                                    <input type="text" id="username" name="username" class="form-control" placeholder=" " required />
+                                    <label class="form-label" for="username">Username</label>
                                 </div>
 
                                 <!-- Password input -->
                                 <div data-mdb-input-init class="form-outline mb-4">
-                                    <input type="password" id="password" class="form-control" placeholder=" " />
-                                    <label class="form-label" for="password">Password</label>
+                                    <input type="password" id="password" name="password" class="form-control" placeholder=" " 
+                                           required minlength="5" />
+                                    <label class="form-label" for="password">Password (minimum 5 characters)</label>
                                 </div>
 
                                 <!-- Submit button -->
