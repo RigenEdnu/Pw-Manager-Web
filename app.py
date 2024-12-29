@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 from functools import wraps
 import json
 import random
@@ -174,19 +174,26 @@ def logout():
     flash('Logged out successfully', 'info')
     return redirect(url_for('login'))
 
+def get_user_passwords(username):
+    """Get passwords owned by specific user"""
+    data = load_passwd()
+    return [item for item in data if item.get('owner') == username]
+
 @app.route('/')
 @login_required
 def index():
-    data = load_passwd()
+    user_passwords = get_user_passwords(session['username'])
     login_history = get_login_history()
-    return render_template('home.html', data=data, login_history=login_history)
+    return render_template('home.html', 
+                         data=user_passwords, 
+                         total_passwords=len(user_passwords),
+                         login_history=login_history)
 
 @app.route('/management/password')
 @login_required
 def management_password():
-    data = load_passwd()
+    data = get_user_passwords(session['username'])
     for item in data:
-        # Display password directly since we're not using encryption
         item['display_password'] = item['password']
     return render_template('management/index.html', data=data)
 
@@ -196,14 +203,15 @@ def add():
     if request.method == 'POST':
         data = load_passwd()
         username = request.form['username']
-        password = encrypt_password(request.form['pass'])  # Encrypt password
+        password = request.form['pass']  # Store plain password
         new_id = len(data) + 1
         
         new_entry = {
             "id_pass": new_id,
             "label": request.form['label'],
             "username": username,
-            "password": password  # Store password as plain text
+            "password": password,  # No encryption
+            "owner": session['username']
         }
         
         data.append(new_entry)
@@ -218,10 +226,15 @@ def edit(id):
     data = load_passwd()
     item = next((item for item in data if item['id_pass'] == id), None)
     
+    # Check if user owns this password
+    if not item or item.get('owner') != session['username']:
+        flash('Access denied!', 'danger')
+        return redirect(url_for('management_password'))
+    
     if request.method == 'POST':
         item['label'] = request.form['label']
         item['username'] = request.form['username']
-        item['password'] = encrypt_password(request.form['pass'])  # Encrypt password
+        item['password'] = request.form['pass']  # Store plain password
         
         save_passwd(data)
         flash('Data updated successfully!', 'success')
@@ -233,13 +246,20 @@ def edit(id):
 @login_required
 def delete(id):
     data = load_passwd()
+    
+    # Only delete if user owns the password
+    item = next((item for item in data if item['id_pass'] == id), None)
+    if not item or item.get('owner') != session['username']:
+        flash('Access denied!', 'danger')
+        return redirect(url_for('management_password'))
+    
     # Remove the item with the specified id
     data = [item for item in data if item['id_pass'] != id]
     
     # Reorder the IDs sequentially
     for index, item in enumerate(data, start=1):
         item['id_pass'] = index
-        
+    
     save_passwd(data)
     flash('Data deleted successfully!', 'success')
     return redirect(url_for('management_password'))
@@ -254,14 +274,15 @@ def generate_password():
 def save_generated():
     data = load_passwd()
     username = request.form['username']
-    password = encrypt_password(request.form['password'])  # Encrypt password
+    password = request.form['password']  # Store plain password
     new_id = len(data) + 1
     
     new_entry = {
         "id_pass": new_id,
         "label": request.form['label'],
         "username": username,
-        "password": password  # Store password as plain text
+        "password": password,  # No encryption
+        "owner": session['username']
     }
     
     data.append(new_entry)
