@@ -203,8 +203,8 @@ username_store = {}  # Dictionary to store plain usernames
 def management_password():
     data = load_passwd()
     for item in data:
-        # Only handle password display, username is already plain text
-        item['display_password'] = plain_data_map.get(f"pw_{item['id_pass']}", '••••••••')
+        # Show actual password in display
+        item['display_password'] = item['password']
     return render_template('management/index.html', data=data)
 
 @app.route('/management/password/add', methods=['GET', 'POST'])
@@ -219,12 +219,9 @@ def add():
         new_entry = {
             "id_pass": new_id,
             "label": request.form['label'],
-            "username": username,  # Store username as plain text
-            "password": hash_text(password)   # Only hash password
+            "username": username,
+            "password": password  # Store password as plain text
         }
-        
-        # Store only password in memory for display
-        plain_data_map[f"pw_{new_id}"] = password
         
         data.append(new_entry)
         save_passwd(data)
@@ -238,28 +235,16 @@ def edit(id):
     data = load_passwd()
     item = next((item for item in data if item['id_pass'] == id), None)
     
-    if item:
-        # Create a copy with plain username for display
-        display_item = item.copy()
-        display_item['username'] = username_store.get(f"un_{id}", item['username'])
-        
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['pass']
-        
         item['label'] = request.form['label']
-        item['username'] = hash_text(username)  # Hash for storage
-        item['password'] = hash_text(password)
-        
-        # Update plain storage
-        username_store[f"un_{id}"] = username
-        plain_data_map[f"pw_{id}"] = password
+        item['username'] = request.form['username']
+        item['password'] = request.form['pass']  # Store password as plain text
         
         save_passwd(data)
         flash('Data updated successfully!', 'success')
         return redirect(url_for('management_password'))
     
-    return render_template('management/edit.html', item=display_item)
+    return render_template('management/edit.html', item=item)
 
 @app.route('/management/password/<int:id>/delete')
 @login_required
@@ -292,13 +277,9 @@ def save_generated():
     new_entry = {
         "id_pass": new_id,
         "label": request.form['label'],
-        "username": hash_text(username),  # Hash username for storage
-        "password": hash_text(password)
+        "username": username,
+        "password": password  # Store password as plain text
     }
-    
-    # Store plain versions
-    username_store[f"un_{new_id}"] = username
-    plain_data_map[f"pw_{new_id}"] = password
     
     data.append(new_entry)
     save_passwd(data)
