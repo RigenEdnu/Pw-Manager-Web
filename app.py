@@ -3,10 +3,9 @@ from functools import wraps
 import json
 import random
 import string
-import hashlib
 import os
 from datetime import datetime
-import bcrypt
+import hashlib
 
 app = Flask(__name__, static_folder='public', template_folder='templates')
 app.secret_key = os.urandom(24)
@@ -22,16 +21,6 @@ def save_passwd(data):
     with open(JSON_FILE, 'w') as f:
         json.dump({'passwords': data}, f, indent=4)
 
-def hash_password(password):
-    # Use SHA-256 for hashing
-    return hashlib.sha256(password.encode()).hexdigest()
-
-# Dictionary to store plain text data
-user_data_map = {}
-
-def hash_text(text):
-    return hashlib.sha256(text.encode()).hexdigest()
-
 # Ensure auth.json exists
 def ensure_auth_file():
     if not os.path.exists('database/auth.json'):
@@ -44,7 +33,7 @@ def login_required(f):
     def decorated_function(*args, **kwargs):
         if not session.get('logged_in'):
             next_url = request.url if request.endpoint != 'login' else None
-            if next_url:
+            if (next_url):
                 session['next_url'] = next_url
             flash('Please login first!', 'warning')
             return redirect(url_for('login'))
@@ -62,9 +51,6 @@ def load_users():
 def save_users(users):
     with open('database/auth.json', 'w') as f:
         json.dump({'users': users}, f, indent=4)
-
-def hash_credentials(text):
-    return hashlib.sha256(text.encode()).hexdigest()
 
 def save_login_history(username):
     try:
@@ -105,6 +91,9 @@ def get_login_history():
     except:
         return []
 
+def encrypt_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if session.get('logged_in'):
@@ -112,19 +101,18 @@ def login():
 
     if request.method == 'POST':
         username = request.form.get('username')
-        password = request.form.get('password')
+        password = encrypt_password(request.form.get('password'))  # Encrypt password
         
         if not username or not password:
             flash('Please fill all fields', 'danger')
             return render_template('auth/login.html')
         
         users = load_users()
-        hashed_password = hash_credentials(password)
         
-        # Find user by plain username and hashed password
+        # Compare with encrypted password
         user = next((user for user in users 
                     if user['username'] == username
-                    and user['password'] == hashed_password), None)
+                    and user['password'] == password), None)
         
         if user:
             session['logged_in'] = True
@@ -164,8 +152,8 @@ def signup():
                 return render_template('auth/signup.html')
             
             new_user = {
-                'username': username,  # Store username as plain text
-                'password': hash_credentials(password)  # Hash only password
+                'username': username,
+                'password': encrypt_password(password)  # Encrypt password
             }
             
             users.append(new_user)
@@ -193,34 +181,13 @@ def index():
     login_history = get_login_history()
     return render_template('home.html', data=data, login_history=login_history)
 
-# Dictionary to store plain text data
-plain_data_map = {}
-
-# Add this after the existing plain_data_map definition
-username_store = {}  # Dictionary to store plain usernames
-
-# Add this function for password encryption
-def encrypt_password(password):
-    salt = bcrypt.gensalt()
-    hashed = bcrypt.hashpw(password.encode(), salt)
-    return {
-        'encrypted': hashed.decode(),
-        'display': password  # For display purposes
-    }
-
-def decrypt_password(hashed_password, password):
-    return bcrypt.checkpw(password.encode(), hashed_password.encode())
-
 @app.route('/management/password')
 @login_required
 def management_password():
     data = load_passwd()
     for item in data:
-        # Ensure backward compatibility with existing data
-        if isinstance(item['password'], dict):
-            item['display_password'] = item['password'].get('display', '••••••••')
-        else:
-            item['display_password'] = '••••••••'
+        # Display password directly since we're not using encryption
+        item['display_password'] = item['password']
     return render_template('management/index.html', data=data)
 
 @app.route('/management/password/add', methods=['GET', 'POST'])
@@ -229,14 +196,14 @@ def add():
     if request.method == 'POST':
         data = load_passwd()
         username = request.form['username']
-        password = request.form['pass']
+        password = encrypt_password(request.form['pass'])  # Encrypt password
         new_id = len(data) + 1
         
         new_entry = {
             "id_pass": new_id,
             "label": request.form['label'],
             "username": username,
-            "password": encrypt_password(password)  # Now stores both hash and plain
+            "password": password  # Store password as plain text
         }
         
         data.append(new_entry)
@@ -254,17 +221,11 @@ def edit(id):
     if request.method == 'POST':
         item['label'] = request.form['label']
         item['username'] = request.form['username']
-        item['password'] = encrypt_password(request.form['pass'])
+        item['password'] = encrypt_password(request.form['pass'])  # Encrypt password
         
         save_passwd(data)
         flash('Data updated successfully!', 'success')
         return redirect(url_for('management_password'))
-    
-    # For displaying in edit form
-    if item and isinstance(item['password'], dict):
-        display_item = item.copy()
-        display_item['password'] = item['password'].get('display', '')
-        return render_template('management/edit.html', item=display_item)
     
     return render_template('management/edit.html', item=item)
 
@@ -293,14 +254,14 @@ def generate_password():
 def save_generated():
     data = load_passwd()
     username = request.form['username']
-    password = request.form['password']
+    password = encrypt_password(request.form['password'])  # Encrypt password
     new_id = len(data) + 1
     
     new_entry = {
         "id_pass": new_id,
         "label": request.form['label'],
         "username": username,
-        "password": encrypt_password(password)
+        "password": password  # Store password as plain text
     }
     
     data.append(new_entry)
