@@ -6,6 +6,7 @@ import string
 import hashlib
 import os
 from datetime import datetime
+import bcrypt
 
 app = Flask(__name__, static_folder='public', template_folder='templates')
 app.secret_key = os.urandom(24)
@@ -198,13 +199,28 @@ plain_data_map = {}
 # Add this after the existing plain_data_map definition
 username_store = {}  # Dictionary to store plain usernames
 
+# Add this function for password encryption
+def encrypt_password(password):
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(password.encode(), salt)
+    return {
+        'encrypted': hashed.decode(),
+        'display': password  # For display purposes
+    }
+
+def decrypt_password(hashed_password, password):
+    return bcrypt.checkpw(password.encode(), hashed_password.encode())
+
 @app.route('/management/password')
 @login_required
 def management_password():
     data = load_passwd()
     for item in data:
-        # Show actual password in display
-        item['display_password'] = item['password']
+        # Ensure backward compatibility with existing data
+        if isinstance(item['password'], dict):
+            item['display_password'] = item['password'].get('display', '••••••••')
+        else:
+            item['display_password'] = '••••••••'
     return render_template('management/index.html', data=data)
 
 @app.route('/management/password/add', methods=['GET', 'POST'])
@@ -220,7 +236,7 @@ def add():
             "id_pass": new_id,
             "label": request.form['label'],
             "username": username,
-            "password": password  # Store password as plain text
+            "password": encrypt_password(password)  # Now stores both hash and plain
         }
         
         data.append(new_entry)
@@ -238,11 +254,17 @@ def edit(id):
     if request.method == 'POST':
         item['label'] = request.form['label']
         item['username'] = request.form['username']
-        item['password'] = request.form['pass']  # Store password as plain text
+        item['password'] = encrypt_password(request.form['pass'])
         
         save_passwd(data)
         flash('Data updated successfully!', 'success')
         return redirect(url_for('management_password'))
+    
+    # For displaying in edit form
+    if item and isinstance(item['password'], dict):
+        display_item = item.copy()
+        display_item['password'] = item['password'].get('display', '')
+        return render_template('management/edit.html', item=display_item)
     
     return render_template('management/edit.html', item=item)
 
@@ -278,7 +300,7 @@ def save_generated():
         "id_pass": new_id,
         "label": request.form['label'],
         "username": username,
-        "password": password  # Store password as plain text
+        "password": encrypt_password(password)
     }
     
     data.append(new_entry)
