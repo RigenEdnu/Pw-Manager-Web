@@ -17,9 +17,30 @@ def load_passwd():
     with open(JSON_FILE, 'r') as f:
         return json.load(f)['passwords']
 
+def reorder_ids_by_owner(data):
+    """Reorder IDs for each owner starting from 1"""
+    # Group passwords by owner
+    passwords_by_owner = {}
+    for item in data:
+        owner = item.get('owner')
+        if owner not in passwords_by_owner:
+            passwords_by_owner[owner] = []
+        passwords_by_owner[owner].append(item)
+    
+    # Reorder IDs for each owner's passwords
+    reordered_data = []
+    for owner, passwords in passwords_by_owner.items():
+        for index, item in enumerate(passwords, start=1):
+            item['id_pass'] = index
+            reordered_data.append(item)
+    
+    return reordered_data
+
 def save_passwd(data):
+    # Reorder IDs before saving
+    ordered_data = reorder_ids_by_owner(data)
     with open(JSON_FILE, 'w') as f:
-        json.dump({'passwords': data}, f, indent=4)
+        json.dump({'passwords': ordered_data}, f, indent=4)
 
 # Ensure auth.json exists
 def ensure_auth_file():
@@ -204,7 +225,10 @@ def add():
         data = load_passwd()
         username = request.form['username']
         password = request.form['pass']  # Store plain password
-        new_id = len(data) + 1
+        
+        # Get max ID for current user
+        user_passwords = [p for p in data if p.get('owner') == session['username']]
+        new_id = len(user_passwords) + 1
         
         new_entry = {
             "id_pass": new_id,
@@ -215,7 +239,7 @@ def add():
         }
         
         data.append(new_entry)
-        save_passwd(data)
+        save_passwd(data)  # This will reorder all IDs
         flash('Data added successfully!', 'success')
         return redirect(url_for('management_password'))
     return render_template('management/add.html')
@@ -248,19 +272,17 @@ def delete(id):
     data = load_passwd()
     
     # Only delete if user owns the password
-    item = next((item for item in data if item['id_pass'] == id), None)
-    if not item or item.get('owner') != session['username']:
+    item = next((item for item in data if item['id_pass'] == id 
+                 and item.get('owner') == session['username']), None)
+    if not item:
         flash('Access denied!', 'danger')
         return redirect(url_for('management_password'))
     
-    # Remove the item with the specified id
-    data = [item for item in data if item['id_pass'] != id]
+    # Remove the item
+    data = [item for item in data if not (item['id_pass'] == id 
+            and item.get('owner') == session['username'])]
     
-    # Reorder the IDs sequentially
-    for index, item in enumerate(data, start=1):
-        item['id_pass'] = index
-    
-    save_passwd(data)
+    save_passwd(data)  # This will reorder all IDs
     flash('Data deleted successfully!', 'success')
     return redirect(url_for('management_password'))
 
@@ -275,7 +297,10 @@ def save_generated():
     data = load_passwd()
     username = request.form['username']
     password = request.form['password']  # Store plain password
-    new_id = len(data) + 1
+    
+    # Get max ID for current user
+    user_passwords = [p for p in data if p.get('owner') == session['username']]
+    new_id = len(user_passwords) + 1
     
     new_entry = {
         "id_pass": new_id,
@@ -286,7 +311,7 @@ def save_generated():
     }
     
     data.append(new_entry)
-    save_passwd(data)
+    save_passwd(data)  # This will reorder all IDs
     flash('Password saved successfully!', 'success')
     return redirect(url_for('management_password'))
 
