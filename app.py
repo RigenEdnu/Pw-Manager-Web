@@ -6,6 +6,10 @@ import string
 import os
 from datetime import datetime
 import hashlib
+from cryptography.fernet import Fernet
+import base64
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 app = Flask(__name__, static_folder='public', template_folder='templates')
 app.secret_key = os.urandom(24)
@@ -115,6 +119,32 @@ def get_login_history():
 def encrypt_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
+# Generate key from password
+def generate_key():
+    salt = b'salt_'  # In production, use a secure random salt
+    kdf = PBKDF2HMAC(
+        algorithm=hashes.SHA256(),
+        length=32,
+        salt=salt,
+        iterations=100000,
+    )
+    key = base64.urlsafe_b64encode(kdf.derive(b'your-secret-key'))  # In production, use a secure secret key
+    return Fernet(key)
+
+# Encrypt password
+def encrypt_data(password):
+    f = generate_key()
+    return f.encrypt(password.encode()).decode()
+
+# Decrypt password
+def decrypt_data(encrypted_password):
+    try:
+        f = generate_key()
+        return f.decrypt(encrypted_password.encode()).decode()
+    except Exception as e:
+        print(f"Decryption error: {str(e)}")
+        return "Error decrypting password"
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if session.get('logged_in'):
@@ -215,7 +245,11 @@ def index():
 def management_password():
     data = get_user_passwords(session['username'])
     for item in data:
-        item['display_password'] = item['password']
+        # Decrypt passwords for display
+        try:
+            item['display_password'] = decrypt_data(item['password'])
+        except Exception as e:
+            item['display_password'] = "Error decrypting password"
     return render_template('management/index.html', data=data)
 
 @app.route('/management/password/add', methods=['GET', 'POST'])
@@ -224,7 +258,10 @@ def add():
     if request.method == 'POST':
         data = load_passwd()
         username = request.form['username']
-        password = request.form['pass']  # Store plain password
+        password = request.form['pass']
+        
+        # Encrypt password before saving
+        encrypted_password = encrypt_data(password)
         
         # Get max ID for current user
         user_passwords = [p for p in data if p.get('owner') == session['username']]
@@ -234,12 +271,12 @@ def add():
             "id_pass": new_id,
             "label": request.form['label'],
             "username": username,
-            "password": password,  # No encryption
+            "password": encrypted_password,  # Store encrypted password
             "owner": session['username']
         }
         
         data.append(new_entry)
-        save_passwd(data)  # This will reorder all IDs
+        save_passwd(data)
         flash('Data added successfully!', 'success')
         return redirect(url_for('management_password'))
     return render_template('management/add.html')
@@ -258,12 +295,15 @@ def edit(id):
     if request.method == 'POST':
         item['label'] = request.form['label']
         item['username'] = request.form['username']
-        item['password'] = request.form['pass']  # Store plain password
+        # Encrypt the new password before saving
+        item['password'] = encrypt_data(request.form['pass'])
         
         save_passwd(data)
         flash('Data updated successfully!', 'success')
         return redirect(url_for('management_password'))
     
+    # Decrypt password for display in edit form
+    item['password'] = decrypt_data(item['password'])
     return render_template('management/edit.html', item=item)
 
 @app.route('/management/password/<int:id>/delete')
@@ -296,7 +336,10 @@ def generate_password():
 def save_generated():
     data = load_passwd()
     username = request.form['username']
-    password = request.form['password']  # Store plain password
+    password = request.form['password']
+    
+    # Encrypt password before saving
+    encrypted_password = encrypt_data(password)
     
     # Get max ID for current user
     user_passwords = [p for p in data if p.get('owner') == session['username']]
@@ -306,12 +349,12 @@ def save_generated():
         "id_pass": new_id,
         "label": request.form['label'],
         "username": username,
-        "password": password,  # No encryption
+        "password": encrypted_password,  # Store encrypted password
         "owner": session['username']
     }
     
     data.append(new_entry)
-    save_passwd(data)  # This will reorder all IDs
+    save_passwd(data)
     flash('Password saved successfully!', 'success')
     return redirect(url_for('management_password'))
 
