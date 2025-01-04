@@ -22,8 +22,8 @@ def load_passwd():
         return json.load(f)['passwords']
 
 def reorder_ids_by_owner(data):
-    """Reorder IDs for each owner starting from 1"""
-    # Group passwords by owner
+    """Reorder ID untuk setiap pemilik mulai dari 1"""
+    # Mengelompokkan kata sandi berdasarkan pemilik
     passwords_by_owner = {}
     for item in data:
         owner = item.get('owner')
@@ -31,7 +31,7 @@ def reorder_ids_by_owner(data):
             passwords_by_owner[owner] = []
         passwords_by_owner[owner].append(item)
     
-    # Reorder IDs for each owner's passwords
+    # Reoder ID untuk setiap kata sandi pemilik
     reordered_data = []
     for owner, passwords in passwords_by_owner.items():
         for index, item in enumerate(passwords, start=1):
@@ -41,7 +41,7 @@ def reorder_ids_by_owner(data):
     return reordered_data
 
 def save_passwd(data):
-    # Reorder IDs before saving
+    # Reorder ID sebelum menyimpan
     ordered_data = reorder_ids_by_owner(data)
     with open(JSON_FILE, 'w') as f:
         json.dump({'passwords': ordered_data}, f, indent=4)
