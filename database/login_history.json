@@ -2,10 +2,6 @@
     "history": [
         {
             "username": "admin",
-            "timestamp": "2025-01-04 11:46:00"
-        },
-        {
-            "username": "admin",
             "timestamp": "2025-01-04 11:46:56"
         },
         {
@@ -19,6 +15,10 @@
         {
             "username": "admin",
             "timestamp": "2025-01-05 07:31:16"
+        },
+        {
+            "username": "admin",
+            "timestamp": "2025-01-05 08:13:08"
         }
     ]
 }

@@ -392,5 +392,57 @@ def create_password():
         flash(f'Error: {str(e)}', 'danger')
         return redirect(url_for('generate_password'))
 
+@app.route('/profile/settings', methods=['GET', 'POST'])
+@login_required
+def profile_settings():
+    if request.method == 'POST':
+        action = request.form.get('action')
+        
+        if action == 'change_password':
+            current_password = request.form.get('current_password')
+            new_password = request.form.get('new_password')
+            confirm_password = request.form.get('confirm_password')
+            
+            # Basic validation
+            if not all([current_password, new_password, confirm_password]):
+                flash('All fields are required', 'danger')
+                return redirect(url_for('profile_settings'))
+            
+            if new_password != confirm_password:
+                flash('New passwords do not match', 'danger')
+                return redirect(url_for('profile_settings'))
+            
+            if len(new_password) < 5:
+                flash('Password must be at least 5 characters long', 'danger')
+                return redirect(url_for('profile_settings'))
+            
+            # Verify current password
+            users = load_users()
+            user = next((u for u in users if u['username'] == session['username']), None)
+            
+            if not user or user['password'] != encrypt_password(current_password):
+                flash('Current password is incorrect', 'danger')
+                return redirect(url_for('profile_settings'))
+            
+            # Update password
+            user['password'] = encrypt_password(new_password)
+            save_users(users)
+            
+            flash('Password updated successfully', 'success')
+            return redirect(url_for('profile_settings'))
+    
+    # Get user info
+    user_passwords = get_user_passwords(session['username'])
+    total_passwords = len(user_passwords)
+    
+    # Get registration date (optional)
+    users = load_users()
+    user = next((u for u in users if u['username'] == session['username']), None)
+    user_info = {'joined_date': 'Not available'} if not user else user
+    
+    return render_template('profile/settings.html', 
+                         total_passwords=total_passwords,
+                         user_info=user_info)
+
 if __name__ == '__main__':
     app.run(debug=True)
