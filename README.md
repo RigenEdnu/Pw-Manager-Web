@@ -1,4 +1,4 @@
-<h1>Website Password Manager</h1>h1>
+<h1>Website Password Manager</h1>
 
 <div align="center">
   <img src="public/img/logo-200.png" alt="Logo" width="200" />
