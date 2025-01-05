@@ -1,7 +1,7 @@
 Website Password Manager
 
 <div align="center">
-  <img src="public/img/logo.png" alt="Logo" width="200" />
+  <img src="public/img/logo-200.png" alt="Logo" width="200" />
 </div>
 
 Website Password Manager adalah aplikasi berbasis web yang dirancang untuk membantu pengguna menyimpan, mengelola, dan mengamankan kata sandi mereka dengan mudah. Dibangun menggunakan Python (Flask) sebagai backend dan JSON sebagai basis data, aplikasi ini menerapkan teknik hashing untuk melindungi password pengguna dan enkripsi untuk data password yang disimpan.
