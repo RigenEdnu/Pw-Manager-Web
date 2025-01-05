@@ -23,7 +23,6 @@ Teknologi yang Digunakan:
 - Basis Data: JSON
 - Keamanan: Hashing (SHA-256), Enkripsi (cryptography.fernet)
 - Frontend: HTML, CSS, JavaScript
-- Lainnya: Werkzeug (untuk hashing password), cryptography (untuk enkripsi data)
 
 Cara Menjalankan Password Manager
 - Python 3.x 
@@ -40,7 +39,7 @@ Instal Dependensi:
 Jalankan Aplikasi:
 - python app.py
 Akses Aplikasi:
-- Buka browser dan akses http://localhost:5000.
+- Buka browser dan akses http://127.0.0.1:5000
 
 Tim Pengembang
 - Nikolas Gilarso Putra (24.01.5113)
