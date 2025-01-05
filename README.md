@@ -26,23 +26,23 @@ Teknologi yang Digunakan:
 - Lainnya: Werkzeug (untuk hashing password), cryptography (untuk enkripsi data)
 
 Cara Menjalankan Password Manager
-Persyaratan
 - Python 3.x 
 - Pip (Python package manager)
 
 Langkah-langkah
-    Clone Repository:
-    git clone https://github.com/username/repository-name.git
-    cd repository-name
+Clone Repository:
+- git clone https://github.com/RigenEdnu/Pw-Manager-Web.git
+- cd Pw-Manager-Web
+
 Instal Dependensi:
-    pip install -r requirements.txt
+- pip install -r requirements.txt
 
 Jalankan Aplikasi:
-    python app.py
+- python app.py
 Akses Aplikasi:
-    Buka browser dan akses http://localhost:5000.
+- Buka browser dan akses http://localhost:5000.
 
 Tim Pengembang
-Nikolas Gilarso Putra (24.01.5113)
-Rigen Ednu Prayudha (24.01.5119)
-Chrisantos Seftrian Enol (24.01.5135)
+- Nikolas Gilarso Putra (24.01.5113)
+- Rigen Ednu Prayudha (24.01.5119)
+- Chrisantos Seftrian Enol (24.01.5135)
