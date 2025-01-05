@@ -1,4 +1,4 @@
-<h1>Website Password Manager<h1>
+<h1>Website Password Manager</h1>
 
 <div align="center">
   <img src="public/img/logo-200.png" alt="Logo" width="200" />
@@ -8,15 +8,15 @@ Website Password Manager adalah aplikasi berbasis web yang dirancang untuk memba
 
 Fitur Utama
 Manajemen Password:
-    - Tambah, lihat, ubah, dan hapus (CRUD) data password.
-    - Enkripsi data password yang disimpan untuk keamanan tambahan.
+- Tambah, lihat, ubah, dan hapus (CRUD) data password.
+- Enkripsi data password yang disimpan untuk keamanan tambahan.
 Generate Password:
-    - Menghasilkan password acak yang kuat sesuai kriteria pengguna.
+- Menghasilkan password acak yang kuat sesuai kriteria pengguna.
 Keamanan:
-    - Password pengguna di-hash menggunakan algoritma SHA-256.
-    - Autentikasi pengguna untuk memastikan hanya pengguna terotorisasi yang dapat mengakses   data.
+- Password pengguna di-hash menggunakan algoritma SHA-256.
+- Autentikasi pengguna untuk memastikan hanya pengguna terotorisasi yang dapat mengakses   data.
 Antarmuka Pengguna:
-    - Ramah pengguna dan responsif.
+- Ramah pengguna dan responsif.
 
 Teknologi yang Digunakan:
 - Backend: Python (Flask)
