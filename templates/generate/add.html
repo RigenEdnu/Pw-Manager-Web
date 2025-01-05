@@ -9,7 +9,7 @@
             <form method="POST" action="{{ url_for('create_password') }}">
                 <div class="form-group">
                     <label for="password-length">Password Length (3-128)</label>
-                    <input type="number" class="form-control" name="length" min="3" max="128" value="{{ request.form.get('length', 12) }}" required>
+                    <input type="number" class="form-control" name="length" min="3" max="128" value="{{ request.form.get('length', 5) }}" required>
                 </div>
                 <div class="form-group">
                     <div class="form-check">
