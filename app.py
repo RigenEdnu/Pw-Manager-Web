@@ -444,5 +444,25 @@ def profile_settings():
                          total_passwords=total_passwords,
                          user_info=user_info)
 
+@app.route('/delete_account', methods=['POST'])
+@login_required
+def delete_account():
+    username = session['username']
+    
+    # Load users and remove the current user
+    users = load_users()
+    users = [user for user in users if user['username'] != username]
+    save_users(users)
+    
+    # Load passwords and remove passwords owned by the current user
+    passwords = load_passwd()
+    passwords = [password for password in passwords if password['owner'] != username]
+    save_passwd(passwords)
+    
+    # Clear session and redirect to signup page
+    session.clear()
+    flash('Your account has been deleted successfully.', 'success')
+    return redirect(url_for('signup'))
+
 if __name__ == '__main__':
     app.run(debug=True)
