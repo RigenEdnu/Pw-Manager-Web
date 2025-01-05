@@ -69,22 +69,34 @@
                                                 </button>
                                             </div>
                                             <div class="modal-body">
-                                                <div class="form-group">
-                                                    <label class="small font-weight-bold">Label</label>
-                                                    <input type="text" class="form-control" value="{{ item.label }}" readonly>
+                                                <div class="row mb-3">
+                                                    <div class="col-4">
+                                                        <label class="col-form-label font-weight-bold">Label</label>
+                                                    </div>
+                                                    <div class="col-8">
+                                                        <input type="text" class="form-control" value="{{ item.label }}" readonly>
+                                                    </div>
                                                 </div>
-                                                <div class="form-group">
-                                                    <label class="small font-weight-bold">Username</label>
-                                                    <input type="text" class="form-control" value="{{ item.username }}" readonly>
+                                                <div class="row mb-3">
+                                                    <div class="col-4">
+                                                        <label class="col-form-label font-weight-bold">Username</label>
+                                                    </div>
+                                                    <div class="col-8">
+                                                        <input type="text" class="form-control" value="{{ item.username }}" readonly>
+                                                    </div>
                                                 </div>
-                                                <div class="form-group mb-0">
-                                                    <label class="small font-weight-bold">Password</label>
-                                                    <div class="input-group">
-                                                        <input type="password" class="form-control password-field" value="{{ item.display_password }}" readonly>
-                                                        <div class="input-group-append">
-                                                            <button class="btn btn-outline-secondary toggle-password" type="button">
-                                                                <i class="fas fa-eye"></i>
-                                                            </button>
+                                                <div class="row">
+                                                    <div class="col-4">
+                                                        <label class="col-form-label font-weight-bold">Password</label>
+                                                    </div>
+                                                    <div class="col-8">
+                                                        <div class="input-group">
+                                                            <input type="password" class="form-control password-field" value="{{ item.display_password }}" readonly>
+                                                            <div class="input-group-append">
+                                                                <button class="btn btn-outline-secondary toggle-password" type="button">
+                                                                    <i class="fas fa-eye"></i>
+                                                                </button>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
